@@ -16,8 +16,10 @@ namespace myMLNET
         
         static void Main(string[] args)
         {
+            /* Add ML Context */
             MLContext mlContext = new MLContext();
-
+            
+            /* Create TextLoader */
             // Define a reader: specify the data columns, types, and where to find them in the text file
             var reader = mlContext.Data.CreateTextLoader(
                 columns: new TextLoader.Column[]
@@ -29,6 +31,7 @@ namespace myMLNET
                 hasHeader: true
             );
 
+            /* Print out data */
             // Create a preview and print out like a CSV
             var trainingData = reader.Load(TrainDataPath);
             var preview = trainingData.Preview(10);
@@ -47,44 +50,14 @@ namespace myMLNET
                 }
                 Console.WriteLine();
             }
-
             /* Create pipeline */
-            // Apply standard ML.NET normalization to the raw data
-            var pipeline =
-                // Specify the PoissonRegression regression trainer
-                mlContext.Transforms.Concatenate("Features", "CocoaPercent")
-                .Append(mlContext.Regression.Trainers.PoissonRegression());
 
             /* Train the model */
-            var model = pipeline.Fit(trainingData);
 
             /* Get the prediction */
-            // Use the trained model for one-time prediction
-            var predictionEngine = model.CreatePredictionEngine<ChocolateInput, ChocolateOutput>(mlContext);
 
-            // Obtain the prediction
-            var prediction = predictionEngine.Predict(new ChocolateInput
-            {
-                CocoaPercent = 65, // trained value 65
-            });
+            /* Generate graph */
 
-            Console.WriteLine($"*************************************");
-            Console.WriteLine($"Predicted customer happiness: {prediction.CustomerHappiness:0.##}");
-            Console.WriteLine($"*************************************");
-
-            // Generate graph with training data
-            ChartGeneratorUtil.PlotRegressionChart(new PlotChartGeneratorModel
-            {
-                Title = "Chocolate Consumer Happiness Prediction",
-                LabelX = "Cocoa Percent",
-                LabelY = "Customer Happiness",
-                ImageName = "CocoaPercentToHappiness.png",
-                PointsList = new List<PlotChartPointsList>
-                        {
-                        new PlotChartPointsList { Points = ChartGeneratorUtil.GetChartPointsFromFile(TrainDataPath, 1, 4).ToList() }
-                        },
-                MaxLimitY = ChartGeneratorUtil.GetMaxColumnValueFromFile(TrainDataPath, 4) + 10,
-            });
             Console.ReadKey();
         }
 
